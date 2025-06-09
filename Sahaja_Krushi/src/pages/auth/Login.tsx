@@ -29,6 +29,7 @@ import PasswordField from "../../components/PasswordField";
 import InputField from "../../components/InputField";
 import ButtonPrimary from "../../components/ButtonPrimary";
 import bgImage from "../../assets/login.jpg";
+  import { useNavigate } from "react-router-dom";
 
 interface FormErrors {
   [key: string]: string;
@@ -143,52 +144,57 @@ const Login = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (
-    formType: "login" | "signup" | "admin"
-  ): Promise<void> => {
-    setIsLoading(true);
 
-    if (!validateForm(formType)) {
-      setIsLoading(false);
-      return;
+const navigate = useNavigate();
+
+const handleSubmit = async (
+  formType: "login" | "signup" | "admin"
+): Promise<void> => {
+  setIsLoading(true);
+
+  if (!validateForm(formType)) {
+    setIsLoading(false);
+    return;
+  }
+
+  try {
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    setShowSuccess(true);
+
+    if (formType === "login") {
+      setLoginData({ email: "", password: "", rememberMe: false });
+      navigate("/admin/home"); // ✅ Redirect to home after login
+    } else if (formType === "signup") {
+      setSignupData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        location: "",
+        farmSize: "",
+        cropTypes: "",
+        password: "",
+        confirmPassword: "",
+        agreeToTerms: false,
+      });
+      setCurrentPage("login"); // ✅ Go to login form after signup
+    } else {
+      setAdminData({
+        email: "",
+        password: "",
+        adminCode: "",
+        rememberMe: false,
+      });
+      navigate("/admin/home"); // ✅ Admin goes to home too
     }
-
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      setShowSuccess(true);
-
-      // Reset form after successful submission
-      if (formType === "login") {
-        setLoginData({ email: "", password: "", rememberMe: false });
-      } else if (formType === "signup") {
-        setSignupData({
-          firstName: "",
-          lastName: "",
-          email: "",
-          phone: "",
-          location: "",
-          farmSize: "",
-          cropTypes: "",
-          password: "",
-          confirmPassword: "",
-          agreeToTerms: false,
-        });
-      } else {
-        setAdminData({
-          email: "",
-          password: "",
-          adminCode: "",
-          rememberMe: false,
-        });
-      }
-    } catch (error) {
-      setErrorMessage("An error occurred. Please try again.");
-      setShowError(true);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  } catch (error) {
+    setErrorMessage("An error occurred. Please try again.");
+    setShowError(true);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div className="h-screen flex overflow-hidden">
@@ -223,36 +229,6 @@ const Login = () => {
             style={{ animationDelay: "0.5s", animationDuration: "3.5s" }}
           ></div>
         </div>
-
-        {/* Content Overlay on Image */}
-        {/* <div className="absolute inset-0 flex flex-col justify-center items-center text-white p-8 z-10">
-          <div className="text-center max-w-md">
-            <div className="inline-flex items-center justify-center w-24 h-24 bg-white/20 backdrop-blur-sm rounded-full mb-6 shadow-2xl">
-              <Leaf className="h-12 w-12 text-white" />
-            </div>
-            <h1 className="text-5xl font-bold mb-4 drop-shadow-lg">
-              AgriConnect
-            </h1>
-            <p className="text-xl text-white/90 mb-8 leading-relaxed">
-              Connecting farmers with modern agricultural solutions for
-              sustainable farming and better yields.
-            </p>
-            <div className="space-y-4 text-white/80">
-              <div className="flex items-center justify-center gap-3">
-                <Tractor className="h-5 w-5" />
-                <span>Smart Farm Management</span>
-              </div>
-              <div className="flex items-center justify-center gap-3">
-                <Leaf className="h-5 w-5" />
-                <span>Crop Monitoring & Analytics</span>
-              </div>
-              <div className="flex items-center justify-center gap-3">
-                <Shield className="h-5 w-5" />
-                <span>Secure & Reliable Platform</span>
-              </div>
-            </div>
-          </div>
-        </div> */}
       </div>
 
       {/* Right Half - Form */}
@@ -421,42 +397,7 @@ const Login = () => {
                   />
                 </div>
 
-                {/* <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1">
-                    <label className="block text-xs font-medium text-gray-700">
-                      Farm Size <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Tractor className="h-4 w-4 text-gray-400" />
-                      </div>
-                      <select
-                        name="farmSize"
-                        value={signupData.farmSize}
-                        onChange={(e) => handleInputChange(e, "signup")}
-                        className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                      >
-                        <option value="">Size</option>
-                        <option value="1-10">1-10 acres</option>
-                        <option value="11-50">11-50 acres</option>
-                        <option value="51-100">51-100 acres</option>
-                        <option value="100+">100+ acres</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <InputField
-                    icon={Leaf}
-                    label="Crops"
-                    name="cropTypes"
-                    value={signupData.cropTypes}
-                    onChange={(e) => handleInputChange(e, "signup")}
-                    placeholder="Wheat, Corn"
-                    error={errors.cropTypes}
-                    required
-                  />
-                </div> */}
-
+               
                 <PasswordField
                   label="Password"
                   name="password"
