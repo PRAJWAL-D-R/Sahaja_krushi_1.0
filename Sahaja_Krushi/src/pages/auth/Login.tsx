@@ -1,579 +1,207 @@
 import { useState } from "react";
-import type { ChangeEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import {
-  Eye,
-  EyeOff,
-  Leaf,
-  Mail,
-  Lock,
-  User,
-  Phone,
-  MapPin,
-  Shield,
-  ArrowLeft,
-  Tractor,
-  Sun,
-  Droplets,
+  Shield, Mail, Lock, Eye, EyeOff, CheckCircle,
+  AlertCircle, Wheat
 } from "lucide-react";
-import {
-  validateLogin,
-  validateSignup,
-  validateAdminLogin,
-  type SignupFormData,
-  type LoginFormData,
-  type AdminFormData,
-} from "../../lib/validation/Auth";
-import SuccessModal from "../../components/SuccessModel";
-import ErrorModal from "../../components/ErrorModal";
-import PasswordField from "../../components/PasswordField";
-import InputField from "../../components/InputField";
-import ButtonPrimary from "../../components/ButtonPrimary";
-import bgImage from "../../assets/login.jpg";
-  import { useNavigate } from "react-router-dom";
 
-interface FormErrors {
-  [key: string]: string;
-}
+const AdminLogin = () => {
+  const navigate = useNavigate(); // ✅ navigation hook
 
-const Login = () => {
-  const [currentPage, setCurrentPage] = useState<"login" | "signup" | "admin">(
-    "login"
-  );
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [showError, setShowError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-
-  // Login form state
-  const [loginData, setLoginData] = useState<LoginFormData>({
-    email: "",
-    password: "",
-    rememberMe: false,
-  });
-
-  // Signup form state
-  const [signupData, setSignupData] = useState<SignupFormData>({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    location: "",
-    farmSize: "",
-    cropTypes: "",
-    password: "",
-    confirmPassword: "",
-    agreeToTerms: false,
-  });
-
-  // Admin login state
-  const [adminData, setAdminData] = useState<AdminFormData>({
+  const [formData, setFormData] = useState({
     email: "",
     password: "",
     adminCode: "",
-    rememberMe: false,
+    rememberMe: false
   });
 
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loginStatus, setLoginStatus] = useState<"success" | "error" | null>(null);
 
-  const handleInputChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-    formType: "login" | "signup" | "admin"
-  ) => {
-    const { name, value, type } = e.target;
-    const checked = (e.target as HTMLInputElement).checked;
-
-    if (formType === "login") {
-      setLoginData((prev: LoginFormData) => ({
-        ...prev,
-        [name]: type === "checkbox" ? checked : value,
-      }));
-    } else if (formType === "signup") {
-      setSignupData((prev: SignupFormData) => ({
-        ...prev,
-        [name]: type === "checkbox" ? checked : value,
-      }));
-    } else if (formType === "admin") {
-      setAdminData((prev: AdminFormData) => ({
-        ...prev,
-        [name]: type === "checkbox" ? checked : value,
-      }));
-    }
-
-    // Clear error for this field
-    setErrors((prev) => ({ ...prev, [name]: "" }));
+  const ADMIN_CREDENTIALS = {
+    email: "admin@agriconnect.com",
+    password: "Admin@2024",
+    adminCode: "AC2024"
   };
 
-  const validateForm = (formType: "login" | "signup" | "admin"): boolean => {
-    const newErrors: FormErrors = {};
-
-    if (formType === "login") {
-      const result = validateLogin(loginData);
-      if (!result.success) {
-        result.error.errors.forEach((err) => {
-          const path = err.path[0];
-          if (typeof path === "string") {
-            newErrors[path] = err.message;
-          }
-        });
-      }
-    } else if (formType === "signup") {
-      const result = validateSignup(signupData);
-      if (!result.success) {
-        result.error.errors.forEach((err) => {
-          const path = err.path[0];
-          if (typeof path === "string") {
-            newErrors[path] = err.message;
-          }
-        });
-      }
-    } else if (formType === "admin") {
-      const result = validateAdminLogin(adminData);
-      if (!result.success) {
-        result.error.errors.forEach((err) => {
-          const path = err.path[0];
-          if (typeof path === "string") {
-            newErrors[path] = err.message;
-          }
-        });
-      }
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value
+    }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: "" }));
     }
+  };
 
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.email) newErrors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Invalid email format";
+    if (!formData.password) newErrors.password = "Password is required";
+    if (!formData.adminCode) newErrors.adminCode = "Admin access code is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
+    setIsLoading(true);
+    setLoginStatus(null);
 
-const navigate = useNavigate();
+    await new Promise(resolve => setTimeout(resolve, 1500)); // simulate API call
 
-const handleSubmit = async (
-  formType: "login" | "signup" | "admin"
-): Promise<void> => {
-  setIsLoading(true);
+    const isValid =
+      formData.email === ADMIN_CREDENTIALS.email &&
+      formData.password === ADMIN_CREDENTIALS.password &&
+      formData.adminCode === ADMIN_CREDENTIALS.adminCode;
 
-  if (!validateForm(formType)) {
-    setIsLoading(false);
-    return;
-  }
-
-  try {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setShowSuccess(true);
-
-    if (formType === "login") {
-      setLoginData({ email: "", password: "", rememberMe: false });
-      navigate("/admin/home"); // ✅ Redirect to home after login
-    } else if (formType === "signup") {
-      setSignupData({
-        firstName: "",
-        lastName: "",
-        email: "",
-        phone: "",
-        location: "",
-        farmSize: "",
-        cropTypes: "",
-        password: "",
-        confirmPassword: "",
-        agreeToTerms: false,
-      });
-      setCurrentPage("login"); // ✅ Go to login form after signup
+    if (isValid) {
+      setLoginStatus("success");
+      setTimeout(() => {
+        navigate("/admin/home");
+      }, 1000);
     } else {
-      setAdminData({
-        email: "",
-        password: "",
-        adminCode: "",
-        rememberMe: false,
+      setLoginStatus("error");
+      setErrors({
+        general: "Invalid credentials. Please check your email, password, and admin code."
       });
-      navigate("/admin/home"); // ✅ Admin goes to home too
     }
-  } catch (error) {
-    setErrorMessage("An error occurred. Please try again.");
-    setShowError(true);
-  } finally {
+
     setIsLoading(false);
-  }
-};
+  };
 
   return (
-    <div className="h-screen flex overflow-hidden">
-      {/* Left Half - Background Image */}
-      <div className="flex-1 relative">
-        <div
-          className="w-full h-full bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: `url(${bgImage})`,
-          }}
-        />
-
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-black/60"></div>
-
-        {/* Floating Elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div
-            className="absolute top-20 left-10 w-32 h-32 bg-green-200 rounded-full opacity-20 animate-bounce"
-            style={{ animationDelay: "0s", animationDuration: "3s" }}
-          ></div>
-          <div
-            className="absolute top-40 right-20 w-24 h-24 bg-yellow-200 rounded-full opacity-20 animate-bounce"
-            style={{ animationDelay: "1s", animationDuration: "4s" }}
-          ></div>
-          <div
-            className="absolute bottom-32 left-1/4 w-40 h-40 bg-blue-200 rounded-full opacity-20 animate-bounce"
-            style={{ animationDelay: "2s", animationDuration: "5s" }}
-          ></div>
-          <div
-            className="absolute bottom-20 right-10 w-28 h-28 bg-green-300 rounded-full opacity-20 animate-bounce"
-            style={{ animationDelay: "0.5s", animationDuration: "3.5s" }}
-          ></div>
+    <div className="flex h-screen w-full overflow-hidden">
+      {/* Left Kannada Panel */}
+      <div className="w-1/2 relative bg-gradient-to-br from-green-700 via-green-800 to-emerald-900 text-white flex flex-col items-center justify-center px-10">
+        <div className="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mb-6">
+          <Wheat className="w-12 h-12 text-yellow-300" />
+        </div>
+        <h1 className="text-4xl font-bold mb-2">ಕೃಷಿ ಇಲಾಖೆ</h1>
+        <p className="text-xl text-green-100 mb-2">ಭಾರತ ಸರ್ಕಾರ</p>
+        <p className="text-green-200 text-sm mb-4">ಮಾಹಿತಿ ತಂತ್ರಜ್ಞಾನದೊಂದಿಗೆ ರೈತರ ಸಬಲೀಕರಣ</p>
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 max-w-md text-center text-sm text-green-100">
+          "ಸ್ಥಿರ ಕೃಷಿ ವಿಧಾನಗಳ ಮೂಲಕ ಗ್ರಾಮೀಣ ಅಭಿವೃದ್ಧಿ ಮತ್ತು ರೈತರ ಬಾಳಮನಸ್ಸು ಸುಧಾರಣೆ"
+        </div>
+        <div className="mt-6 flex items-center text-sm text-green-200">
+          <Shield className="w-4 h-4 mr-2" />
+          ಡಿಜಿಟಲ್ ಇಂಡಿಯಾ ಪ್ರಸ್ತುತಪಡಿಸುತ್ತದೆ
         </div>
       </div>
 
-      {/* Right Half - Form */}
-      <div className="flex-1 bg-gray-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-[440px]">
-          {/* Login Form */}
-          {currentPage === "login" && (
-            <div className="bg-white rounded-xl shadow-lg p-4 border border-gray-100">
-              <div className="text-center mb-6">
-                <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-green-100 to-green-200 rounded-full mb-3 shadow-lg">
-                  <Leaf className="h-6 w-6 text-green-600" />
-                </div>
-                <h2 className="text-xl font-bold text-gray-900 mb-1">
-                  Welcome Back
-                </h2>
-                <p className="text-sm text-gray-600">Sign in to AgriConnect</p>
-              </div>
+      {/* Right - Login */}
+      <div className="w-1/2 flex items-center justify-center bg-white p-8">
+        <div className="w-full max-w-sm">
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center w-12 h-12 bg-green-600 rounded-full text-white mb-3 shadow-lg">
+              <Shield className="w-6 h-6" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-800 mb-1">Admin Portal</h2>
+            <p className="text-gray-600 text-xs">Access your admin dashboard</p>
+          </div>
 
-              <div className="space-y-4">
-                <InputField
-                  icon={Mail}
-                  label="Email"
-                  name="email"
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Email</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
                   type="email"
-                  value={loginData.email}
-                  onChange={(e) => handleInputChange(e, "login")}
-                  placeholder="farmer@example.com"
-                  error={errors.email}
-                  required
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder="admin@agriconnect.com"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm"
                 />
-
-                <PasswordField
-                  label="Password"
-                  name="password"
-                  value={loginData.password}
-                  onChange={(e) => handleInputChange(e, "login")}
-                  placeholder="Enter password"
-                  error={errors.password}
-                  showPassword={showPassword}
-                  togglePassword={() => setShowPassword(!showPassword)}
-                  required
-                />
-
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="remember"
-                      name="rememberMe"
-                      checked={loginData.rememberMe}
-                      onChange={(e) => handleInputChange(e, "login")}
-                      className="h-3 w-3 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                    />
-                    <label htmlFor="remember" className="ml-2 text-gray-600">
-                      Remember me
-                    </label>
-                  </div>
-                  <button
-                    type="button"
-                    className="text-green-600 hover:text-green-700 font-medium"
-                  >
-                    Forgot?
-                  </button>
-                </div>
-
-                <ButtonPrimary
-                  isLoading={isLoading}
-                  onClick={() => handleSubmit("login")}
-                >
-                  <Tractor className="h-4 w-4" />
-                  Sign In
-                </ButtonPrimary>
               </div>
+              {errors.email && <p className="text-xs text-red-600 mt-1">{errors.email}</p>}
+            </div>
 
-              <div className="mt-4 text-center space-y-3">
-                <p className="text-xs text-gray-600">
-                  New to AgriConnect?{" "}
-                  <button
-                    onClick={() => setCurrentPage("signup")}
-                    className="text-green-600 hover:text-green-700 font-medium"
-                  >
-                    Create Account
-                  </button>
-                </p>
-
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  placeholder="Enter password"
+                  className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg text-sm"
+                />
                 <button
-                  onClick={() => setCurrentPage("admin")}
-                  className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-gray-100 text-gray-700 text-xs rounded-lg border border-gray-300 hover:bg-gray-200 transition-colors"
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
                 >
-                  <Shield className="h-3 w-3" />
-                  Admin Login
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+              {errors.password && <p className="text-xs text-red-600 mt-1">{errors.password}</p>}
             </div>
-          )}
 
-          {/* Signup Form */}
-          {currentPage === "signup" && (
-            <div className="bg-white rounded-xl shadow-lg p-4 border border-gray-100 max-h-[90vh] overflow-y-auto">
-              <div className="text-center mb-4">
-                <div className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-green-100 to-green-200 rounded-full mb-2 shadow-lg">
-                  <User className="h-5 w-5 text-green-600" />
-                </div>
-                <h2 className="text-lg font-bold text-gray-900 mb-1">
-                  Join AgriConnect
-                </h2>
-                <p className="text-xs text-gray-600">Create farmer account</p>
-              </div>
-
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-2">
-                  <InputField
-                    icon={User}
-                    label="First Name"
-                    name="firstName"
-                    value={signupData.firstName}
-                    onChange={(e) => handleInputChange(e, "signup")}
-                    placeholder="John"
-                    error={errors.firstName}
-                    required
-                  />
-                  <InputField
-                    icon={User}
-                    label="Last Name"
-                    name="lastName"
-                    value={signupData.lastName}
-                    onChange={(e) => handleInputChange(e, "signup")}
-                    placeholder="Doe"
-                    error={errors.lastName}
-                    required
-                  />
-                </div>
-
-                <InputField
-                  icon={Mail}
-                  label="Email"
-                  name="email"
-                  type="email"
-                  value={signupData.email}
-                  onChange={(e) => handleInputChange(e, "signup")}
-                  placeholder="prajwal@example.com"
-                  error={errors.email}
-                  required
-                />
-
-                <div className="grid grid-cols-2 gap-2">
-                  <InputField
-                    icon={Phone}
-                    label="Phone"
-                    name="phone"
-                    value={signupData.phone}
-                    onChange={(e) => handleInputChange(e, "signup")}
-                    placeholder="+1234567890"
-                    error={errors.phone}
-                    required
-                  />
-                  <InputField
-                    icon={MapPin}
-                    label="Location"
-                    name="location"
-                    value={signupData.location}
-                    onChange={(e) => handleInputChange(e, "signup")}
-                    placeholder="City, State"
-                    error={errors.location}
-                    required
-                  />
-                </div>
-
-               
-                <PasswordField
-                  label="Password"
-                  name="password"
-                  value={signupData.password}
-                  onChange={(e) => handleInputChange(e, "signup")}
-                  placeholder="Create password"
-                  error={errors.password}
-                  showPassword={showPassword}
-                  togglePassword={() => setShowPassword(!showPassword)}
-                  required
-                />
-
-                <PasswordField
-                  label="Confirm"
-                  name="confirmPassword"
-                  value={signupData.confirmPassword}
-                  onChange={(e) => handleInputChange(e, "signup")}
-                  placeholder="Confirm password"
-                  error={errors.confirmPassword}
-                  showPassword={showConfirmPassword}
-                  togglePassword={() =>
-                    setShowConfirmPassword(!showConfirmPassword)
-                  }
-                  required
-                />
-
-                <div className="flex items-start space-x-2">
-                  <input
-                    type="checkbox"
-                    id="terms"
-                    name="agreeToTerms"
-                    checked={signupData.agreeToTerms}
-                    onChange={(e) => handleInputChange(e, "signup")}
-                    className="h-3 w-3 text-green-600 focus:ring-green-500 border-gray-300 rounded mt-1"
-                  />
-                  <label htmlFor="terms" className="text-xs text-gray-600">
-                    I agree to{" "}
-                    <a
-                      href="#"
-                      className="text-green-600 hover:text-green-700 font-medium"
-                    >
-                      Terms & Privacy
-                    </a>
-                  </label>
-                </div>
-
-                <ButtonPrimary
-                  isLoading={isLoading}
-                  onClick={() => handleSubmit("signup")}
-                >
-                  <User className="h-4 w-4" />
-                  Create Account
-                </ButtonPrimary>
-              </div>
-
-              <div className="mt-4 text-center">
-                <p className="text-xs text-gray-600">
-                  Have an account?{" "}
-                  <button
-                    onClick={() => setCurrentPage("login")}
-                    className="text-green-600 hover:text-green-700 font-medium"
-                  >
-                    Sign in
-                  </button>
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Admin Login Form */}
-          {currentPage === "admin" && (
-            <div className="bg-white rounded-xl shadow-lg p-4 border border-gray-100 relative">
-              <button
-                onClick={() => setCurrentPage("login")}
-                className="absolute top-4 left-4 text-gray-600 hover:text-gray-800 transition-colors"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </button>
-
-              <div className="text-center mb-6">
-                <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-red-100 to-red-200 rounded-full mb-3 shadow-lg">
-                  <Shield className="h-6 w-6 text-red-600" />
-                </div>
-                <h2 className="text-xl font-bold text-gray-900 mb-1">
-                  Admin Access
-                </h2>
-                <p className="text-sm text-gray-600">Administrative portal</p>
-              </div>
-
-              <div className="space-y-4">
-                <InputField
-                  icon={Mail}
-                  label="Admin Email"
-                  name="email"
-                  type="email"
-                  value={adminData.email}
-                  onChange={(e) => handleInputChange(e, "admin")}
-                  placeholder="admin@agriconnect.com"
-                  error={errors.email}
-                  required
-                />
-
-                <PasswordField
-                  label="Password"
-                  name="password"
-                  value={adminData.password}
-                  onChange={(e) => handleInputChange(e, "admin")}
-                  placeholder="Admin password"
-                  error={errors.password}
-                  showPassword={showPassword}
-                  togglePassword={() => setShowPassword(!showPassword)}
-                  required
-                />
-
-                <InputField
-                  icon={Shield}
-                  label="Access Code"
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Admin Code</label>
+              <div className="relative">
+                <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
                   name="adminCode"
-                  value={adminData.adminCode}
-                  onChange={(e) => handleInputChange(e, "admin")}
-                  placeholder="6-digit code"
-                  error={errors.adminCode}
-                  required
+                  value={formData.adminCode}
+                  onChange={handleInputChange}
+                  placeholder="Access code"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm"
                 />
-
-                <div className="flex items-center text-sm">
-                  <input
-                    type="checkbox"
-                    id="adminRemember"
-                    name="rememberMe"
-                    checked={adminData.rememberMe}
-                    onChange={(e) => handleInputChange(e, "admin")}
-                    className="h-3 w-3 text-red-600 focus:ring-red-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="adminRemember" className="ml-2 text-gray-600">
-                    Keep signed in
-                  </label>
-                </div>
-
-                <ButtonPrimary
-                  isLoading={isLoading}
-                  onClick={() => handleSubmit("admin")}
-                  className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 focus:ring-red-200"
-                >
-                  <Shield className="h-4 w-4" />
-                  Admin Sign In
-                </ButtonPrimary>
               </div>
+              {errors.adminCode && <p className="text-xs text-red-600 mt-1">{errors.adminCode}</p>}
             </div>
-          )}
+
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                name="rememberMe"
+                checked={formData.rememberMe}
+                onChange={handleInputChange}
+                className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+              />
+              <label className="ml-2 text-xs text-gray-700">Remember me</label>
+            </div>
+
+            {errors.general && (
+              <p className="text-xs text-red-600 flex items-center">
+                <AlertCircle className="w-4 h-4 mr-1" />
+                {errors.general}
+              </p>
+            )}
+
+            {loginStatus === "success" && (
+              <p className="text-xs text-green-600 flex items-center">
+                <CheckCircle className="w-4 h-4 mr-1" />
+                Login successful! Redirecting...
+              </p>
+            )}
+
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={isLoading}
+              className="w-full py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all text-sm font-semibold"
+            >
+              {isLoading ? "Authenticating..." : "Access Dashboard"}
+            </button>
+          </div>
+
+          <div className="text-center mt-6 text-xs text-gray-400">
+            &copy; 2024 ಕೃಷಿ ಇಲಾಖೆ, ಭಾರತ ಸರ್ಕಾರ.
+          </div>
         </div>
       </div>
-
-      {/* Success Modal */}
-      <SuccessModal
-        isOpen={showSuccess}
-        onClose={() => setShowSuccess(false)}
-        title="Success"
-        message={`${
-          currentPage === "login"
-            ? "Login"
-            : currentPage === "signup"
-            ? "Registration"
-            : "Admin login"
-        } successful!`}
-      />
-
-      {/* Error Modal */}
-      <ErrorModal
-        isOpen={showError}
-        onClose={() => setShowError(false)}
-        title="Error"
-        message={errorMessage}
-      />
     </div>
   );
 };
 
-export default Login;
+export default AdminLogin;

@@ -1,71 +1,276 @@
-import { 
-  Wheat, 
-  Menu, 
-  X, 
-  Search, 
-  Bell, 
-  User, 
+import {
+  Shield,
+  Menu,
+  X,
+  Search,
+  Bell,
   ChevronDown,
-  Sprout,
-  Tractor,
-  BookOpen,
+  Home,
+  Users,
+  UserPlus,
+  FileImage,
+  BarChart3,
+  Eye,
+  Mail,
+  Database,
+  UserCircle,
+  LogOut,
+  Activity,
+  AlertCircle,
+  Wheat,
+  MapPin,
   Phone,
   Globe,
-  FileText
+  Clock,
+  Settings,
+  Languages,
 } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
-const AgricultureNavbar = () => {
+interface Notification {
+  id: number;
+  message: string;
+  time: string;
+  unread: boolean;
+  type: "registration" | "crops" | "report" | "system";
+}
+
+interface ManagementItem {
+  name: string;
+  icon: React.ComponentType<{ className?: string }>;
+  href: string;
+}
+
+interface NavItem {
+  name: string;
+  icon: React.ComponentType<{ className?: string }>;
+  href: string;
+  active?: boolean;
+}
+
+const GovernmentAgricultureNavbar: React.FC = () => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const [showServicesDropdown, setShowServicesDropdown] = useState(false);
-  const [showResourcesDropdown, setShowResourcesDropdown] = useState(false);
+  const [showFarmersDropdown, setShowFarmersDropdown] = useState(false);
+  const [showCropsDropdown, setShowCropsDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  
-  const servicesRef = useRef(null);
-  const resourcesRef = useRef(null);
-  const notificationRef = useRef(null);
-  const userRef = useRef(null);
+  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState<"en" | "kn">("en");
+  const [currentTime, setCurrentTime] = useState(new Date());
 
-  // Mock data
-  const notifications = [
-    { id: 1, message: "New agricultural subsidy program launched", time: "2 hours ago", unread: true },
-    { id: 2, message: "Weather advisory: Heavy rainfall alert", time: "4 hours ago", unread: true },
-    { id: 3, message: "Crop insurance deadline reminder", time: "1 day ago", unread: false },
-  ];
+  const farmersRef = useRef<HTMLDivElement | null>(null);
+  const cropsRef = useRef<HTMLDivElement | null>(null);
+  const notificationRef = useRef<HTMLDivElement | null>(null);
+  const userRef = useRef<HTMLDivElement | null>(null);
+  const languageRef = useRef<HTMLDivElement | null>(null);
 
-  const unreadCount = notifications.filter(n => n.unread).length;
-
-  // Services dropdown items
-  const services = [
-    { name: "Crop Management", icon: Sprout, href: "#" },
-    { name: "Equipment & Machinery", icon: Tractor, href: "#" },
-    { name: "Soil Testing", icon: Globe, href: "#" },
-    { name: "Agricultural Loans", icon: FileText, href: "#" },
-  ];
-
-  // Resources dropdown items
-  const resources = [
-    { name: "Research Publications", icon: BookOpen, href: "#" },
-    { name: "Farming Guides", icon: FileText, href: "#" },
-    { name: "Weather Updates", icon: Globe, href: "#" },
-    { name: "Market Prices", icon: Wheat, href: "#" },
-  ];
-
-  // Close dropdowns when clicking outside
+  // Update time every minute
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (servicesRef.current && !servicesRef.current.contains(event.target)) {
-        setShowServicesDropdown(false);
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Translations object
+  const translations = {
+    en: {
+      // Header
+      govKarnataka: "Government of Karnataka",
+      deptAgriculture: "Department of Agriculture",
+      status: "Status",
+      active: "Active",
+      helpline: "Helpline: 1800-xxx-xxxx",
+
+      // Navigation
+      dashboard: "Dashboard",
+      analytics: "Analytics",
+      reports: "Reports",
+      farmerManagement: "Farmer Management",
+      cropManagement: "Crop Management",
+
+      // Farmer Management
+      farmerRegistration: "Farmer Registration",
+      farmerDirectory: "Farmer Directory",
+      digitalCards: "Digital Identity Cards",
+      farmerAnalytics: "Farmer Analytics",
+      supportRequests: "Support Requests",
+      farmerMgmtDesc: "Manage farmer registrations and services",
+
+      // Crop Management
+      cropMonitoring: "Crop Monitoring",
+      diseaseDetection: "Disease Detection",
+      yieldPredictions: "Yield Predictions",
+      marketPrices: "Market Prices",
+      weatherAdvisory: "Weather Advisory",
+      cropMgmtDesc: "Monitor crops and agricultural data",
+
+      // Notifications
+      notifications: "Notifications",
+      unreadMessages: "unread messages",
+      newFarmerReg: "New farmer registration: Ramesh Kumar from Koratagere",
+      cropDisease: "Crop disease detection: 5 new cases reported",
+      monthlyReport: "Monthly agricultural report generated",
+      systemMaintenance: "System maintenance scheduled for tonight",
+
+      // User Menu
+      administrator: "Admin",
+      profileSettings: "Profile Settings",
+      systemSettings: "System Settings",
+      logout: "Logout",
+
+      // Search
+      // search: "Search...",
+
+      // Language
+      language: "Language",
+      english: "English",
+      kannada: "ಕನ್ನಡ",
+    },
+    kn: {
+      // Header
+      govKarnataka: "ಕರ್ನಾಟಕ ಸರ್ಕಾರ",
+      deptAgriculture: "ಕೃಷಿ ಇಲಾಖೆ",
+      status: "ಸ್ಥಿತಿ",
+      active: "ಸಕ್ರಿಯ",
+      helpline: "ಸಹಾಯವಾಣಿ: 1800-xxx-xxxx",
+
+      // Navigation
+      dashboard: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+      analytics: "ವಿಶ್ಲೇಷಣೆ",
+      reports: "ವರದಿಗಳು",
+      farmerManagement: "ರೈತ ನಿರ್ವಹಣೆ",
+      cropManagement: "ಬೆಳೆ ನಿರ್ವಹಣೆ",
+
+      // Farmer Management
+      farmerRegistration: "ರೈತ ನೋಂದಣಿ",
+      farmerDirectory: "ರೈತ ಡೈರೆಕ್ಟರಿ",
+      digitalCards: "ಡಿಜಿಟಲ್ ಗುರುತಿನ ಕಾರ್ಡ್‌ಗಳು",
+      farmerAnalytics: "ರೈತ ವಿಶ್ಲೇಷಣೆ",
+      supportRequests: "ಸಹಾಯ ಅರ್ಜಿಗಳು",
+      farmerMgmtDesc: "ರೈತ ನೋಂದಣಿ ಮತ್ತು ಸೇವೆಗಳನ್ನು ನಿರ್ವಹಿಸಿ",
+
+      // Crop Management
+      cropMonitoring: "ಬೆಳೆ ಮೇಲ್ವಿಚಾರಣೆ",
+      diseaseDetection: "ರೋಗ ಪತ್ತೆ",
+      yieldPredictions: "ಇಳುವರಿ ಭವಿಷ್ಯವಾಣಿ",
+      marketPrices: "ಮಾರುಕಟ್ಟೆ ಬೆಲೆಗಳು",
+      weatherAdvisory: "ಹವಾಮಾನ ಸಲಹೆ",
+      cropMgmtDesc: "ಬೆಳೆಗಳು ಮತ್ತು ಕೃಷಿ ಮಾಹಿತಿಯನ್ನು ಮೇಲ್ವಿಚಾರಣೆ ಮಾಡಿ",
+
+      // Notifications
+      notifications: "ಅಧಿಸೂಚನೆಗಳು",
+      unreadMessages: "ಓದದ ಸಂದೇಶಗಳು",
+      newFarmerReg: "ಹೊಸ ರೈತ ನೋಂದಣಿ: ಕೊರಟಗೆರೆಯಿಂದ ರಮೇಶ್ ಕುಮಾರ್",
+      cropDisease: "ಬೆಳೆ ರೋಗ ಪತ್ತೆ: 5 ಹೊಸ ಪ್ರಕರಣಗಳು ವರದಿಯಾಗಿವೆ",
+      monthlyReport: "ಮಾಸಿಕ ಕೃಷಿ ವರದಿ ರಚಿಸಲಾಗಿದೆ",
+      systemMaintenance: "ಇಂದು ರಾತ್ರಿ ಸಿಸ್ಟಮ್ ನಿರ್ವಹಣೆ ನಿಗದಿಪಡಿಸಲಾಗಿದೆ",
+
+      // User Menu
+      administrator: "ನಿರ್ವಾಹಕ",
+      profileSettings: "ಪ್ರೊಫೈಲ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
+      systemSettings: "ಸಿಸ್ಟಮ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
+      logout: "ಲಾಗ್ ಔಟ್",
+
+      // Search
+      // search: "ಹುಡುಕಿ...",
+
+      // Language
+      language: "ಭಾಷೆ",
+      english: "English",
+      kannada: "ಕನ್ನಡ",
+    },
+  };
+
+  const t = translations[currentLanguage];
+
+  const notifications: Notification[] = [
+    {
+      id: 1,
+      message: t.newFarmerReg,
+      time: "10 minutes ago",
+      unread: true,
+      type: "registration",
+    },
+    {
+      id: 2,
+      message: t.cropDisease,
+      time: "25 minutes ago",
+      unread: true,
+      type: "crops",
+    },
+    {
+      id: 3,
+      message: t.monthlyReport,
+      time: "2 hours ago",
+      unread: false,
+      type: "report",
+    },
+    {
+      id: 4,
+      message: t.systemMaintenance,
+      time: "4 hours ago",
+      unread: false,
+      type: "system",
+    },
+  ];
+
+  const unreadCount = notifications.filter((n) => n.unread).length;
+
+  const farmerManagement: ManagementItem[] = [
+    {
+      name: t.farmerRegistration,
+      icon: UserPlus,
+      href: "#farmer-registration",
+    },
+    { name: t.farmerDirectory, icon: Users, href: "#farmer-directory" },
+    { name: t.digitalCards, icon: Mail, href: "#digital-cards" },
+    { name: t.farmerAnalytics, icon: Activity, href: "#farmer-analytics" },
+    { name: t.supportRequests, icon: AlertCircle, href: "#support-requests" },
+  ];
+
+  const cropManagement: ManagementItem[] = [
+    { name: t.cropMonitoring, icon: Eye, href: "#crop-monitoring" },
+    { name: t.diseaseDetection, icon: AlertCircle, href: "#disease-detection" },
+    { name: t.yieldPredictions, icon: BarChart3, href: "#yield-predictions" },
+    { name: t.marketPrices, icon: Database, href: "#market-prices" },
+    { name: t.weatherAdvisory, icon: Globe, href: "#weather-advisory" },
+  ];
+
+  const dashboardSections: NavItem[] = [
+    { name: t.dashboard, icon: Home, href: "#dashboard", active: true },
+    { name: t.analytics, icon: BarChart3, href: "#analytics" },
+    { name: t.reports, icon: FileImage, href: "#reports" },
+  ];
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        farmersRef.current &&
+        !farmersRef.current.contains(event.target as Node)
+      ) {
+        setShowFarmersDropdown(false);
       }
-      if (resourcesRef.current && !resourcesRef.current.contains(event.target)) {
-        setShowResourcesDropdown(false);
+      if (
+        cropsRef.current &&
+        !cropsRef.current.contains(event.target as Node)
+      ) {
+        setShowCropsDropdown(false);
       }
-      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target as Node)
+      ) {
         setShowNotifications(false);
       }
-      if (userRef.current && !userRef.current.contains(event.target)) {
+      if (userRef.current && !userRef.current.contains(event.target as Node)) {
         setShowUserMenu(false);
+      }
+      if (
+        languageRef.current &&
+        !languageRef.current.contains(event.target as Node)
+      ) {
+        setShowLanguageMenu(false);
       }
     };
 
@@ -73,186 +278,269 @@ const AgricultureNavbar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const NavLink = ({ href, children, onClick, className = "" }) => (
-    <a 
-      href={href} 
-      onClick={onClick}
-      className={`text-white hover:text-amber-200 transition-colors duration-200 font-medium px-2 py-1 rounded-md hover:bg-white/10 ${className}`}
+  const NavLink: React.FC<{
+    href: string;
+    children: React.ReactNode;
+    active?: boolean;
+  }> = ({ href, children, active = false }) => (
+    <a
+      href={href}
+      className={`text-white hover:text-orange-200 font-medium px-4 py-2 rounded-lg transition-all duration-300 hover:bg-white/15 ${
+        active ? "bg-white/20 text-orange-200 shadow-lg" : ""
+      }`}
     >
       {children}
     </a>
   );
 
-  const DropdownItem = ({ icon: Icon, children, href }) => (
-    <a 
+  const DropdownItem: React.FC<{
+    icon: React.ComponentType<{ className?: string }>;
+    href: string;
+    children: React.ReactNode;
+  }> = ({ icon: Icon, href, children }) => (
+    <a
       href={href}
-      className="flex items-center space-x-3 px-4 py-3 hover:bg-green-50 transition-colors duration-200 text-gray-700 hover:text-green-700 border-b border-gray-50 last:border-b-0"
+      className="flex items-center space-x-3 px-4 py-3 hover:bg-green-50 transition text-gray-700 hover:text-green-700 border-b last:border-b-0 group"
     >
-      <Icon className="h-4 w-4 text-green-600 flex-shrink-0" />
-      <span className="text-sm">{children}</span>
+      <Icon className="h-4 w-4 text-green-600 flex-shrink-0 group-hover:text-green-700 transition-colors" />
+      <span className="text-sm font-medium">{children}</span>
     </a>
   );
 
+  const getNotificationIcon = (type: Notification["type"]) => {
+    switch (type) {
+      case "registration":
+        return UserPlus;
+      case "crops":
+        return Wheat;
+      case "report":
+        return BarChart3;
+      default:
+        return AlertCircle;
+    }
+  };
+
+  const handleLanguageChange = (lang: "en" | "kn") => {
+    setCurrentLanguage(lang);
+    setShowLanguageMenu(false);
+  };
+
   return (
-    <nav className="bg-gradient-to-r from-green-700 via-green-600 to-emerald-600 shadow-xl sticky top-0 z-50">
-      {/* Top Information Bar */}
-      <div className="bg-green-800/40 backdrop-blur-sm border-b border-green-500/30">
+    <nav className="bg-gradient-to-r from-green-800 via-green-700 to-orange-600 shadow-2xl sticky top-0 z-50">
+      {/* Top Government Header */}
+      <div className="bg-green-900/20 backdrop-blur-sm border-b border-green-500/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-2 space-y-2 sm:space-y-0">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-6 space-y-1 sm:space-y-0">
-              <span className="flex items-center space-x-2 text-green-100 text-xs sm:text-sm">
-                <Phone className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                <span className="font-medium">Helpline: 1800-XXX-XXXX</span>
-              </span>
-              <span className="text-green-100 text-xs sm:text-sm hidden md:block">
-                Ministry of Agriculture & Farmers Welfare
-              </span>
+          <div className="flex justify-between items-center py-2">
+            <div className="flex items-center space-x-4 text-green-100 text-sm">
+              <div className="flex items-center space-x-2">
+                <Shield className="h-4 w-4 text-orange-300" />
+                <span className="font-semibold">{t.govKarnataka}</span>
+              </div>
+              <div className="hidden md:flex items-center space-x-2">
+                <MapPin className="h-3 w-3" />
+                <span>{t.deptAgriculture}</span>
+              </div>
             </div>
-            <div className="flex items-center justify-between sm:justify-end space-x-4">
-              <select className="bg-transparent text-green-100 text-xs sm:text-sm border border-green-500/30 rounded px-2 py-1 outline-none cursor-pointer hover:bg-green-700/30 transition-colors duration-200">
-                <option value="en" className="bg-green-700 text-white">English</option>
-                <option value="hi" className="bg-green-700 text-white">हिंदी</option>
-              </select>
+            <div className="flex items-center space-x-6 text-green-100 text-sm">
+              <div className="flex items-center space-x-2">
+                <Clock className="h-4 w-4 text-orange-300" />
+                <span>
+                  {currentTime.toLocaleTimeString("en-IN", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    timeZone: "Asia/Kolkata",
+                  })}
+                </span>
+              </div>
+              <div className="hidden lg:flex items-center space-x-2">
+                <div className="h-2 w-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span>
+                  {t.status}:{" "}
+                  <span className="text-green-300 font-medium">{t.active}</span>
+                </span>
+              </div>
+              <div className="hidden md:flex items-center space-x-2">
+                <Phone className="h-3 w-3" />
+                <span>{t.helpline}</span>
+              </div>
+              {/* Language Selector */}
+             <div className="flex items-center space-x-2 bg-slate-800/60 px-3 py-1 rounded-full border border-slate-600">
+                <Languages className="h-4 w-4 text-amber-300" />
+                <span className="text-amber-100 text-sm font-medium mr-2">
+                  {t.language}:
+                </span>
+
+                <button
+                  onClick={() => handleLanguageChange("en")}
+                  className={`px-3 py-1 rounded-md text-sm font-bold transition-all duration-200 ${
+                    currentLanguage === "en"
+                      ? "bg-amber-600 text-white shadow-md"
+                      : "bg-slate-700 text-slate-300 hover:bg-slate-600"
+                  }`}
+                >
+                  EN
+                </button>
+
+                <button
+                  onClick={() => handleLanguageChange("kn")}
+                  className={`px-3 py-1 rounded-md text-sm font-bold transition-all duration-200 ${
+                    currentLanguage === "kn"
+                      ? "bg-red-600 text-white shadow-md"
+                      : "bg-slate-700 text-slate-300 hover:bg-slate-600"
+                  }`}
+                >
+                  ಕನ್ನಡ
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Main Navigation */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16 lg:h-20">
-          {/* Logo Section */}
-          <div className="flex items-center space-x-3 flex-shrink-0">
-            <div className="bg-white/15 backdrop-blur-sm p-2 sm:p-2.5 lg:p-3 rounded-xl border border-white/20 shadow-lg">
-              <Wheat className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-amber-200" />
-            </div>
-            <div className="text-white min-w-0">
-              <h1 className="text-lg sm:text-xl lg:text-2xl font-bold tracking-tight truncate">
-                AgroGov
-              </h1>
-              <p className="text-xs sm:text-sm text-green-100 hidden sm:block lg:block truncate">
-                <span className="hidden lg:inline">Ministry of Agriculture & Farmers Welfare</span>
-                <span className="lg:hidden">Agriculture Ministry</span>
-              </p>
-            </div>
-          </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex justify-between items-center">
+          {/* Desktop Navigation */}
+          <div className="hidden xl:flex items-center space-x-1">
+            {dashboardSections.map((section, index) => (
+              <NavLink key={index} href={section.href} active={section.active}>
+                <div className="flex items-center space-x-2">
+                  <section.icon className="h-4 w-4" />
+                  <span>{section.name}</span>
+                </div>
+              </NavLink>
+            ))}
 
-          {/* Desktop Navigation Links */}
-          <div className="hidden xl:flex items-center space-x-1 lg:space-x-2 flex-1 justify-center max-w-2xl mx-8">
-            <NavLink href="/">Home</NavLink>
-            
-            {/* Services Dropdown */}
-            <div className="relative" ref={servicesRef}>
+            {/* Farmers Management Dropdown */}
+            <div className="relative" ref={farmersRef}>
               <button
-                onClick={() => setShowServicesDropdown(!showServicesDropdown)}
-                className="flex items-center space-x-1 text-white hover:text-amber-200 transition-colors duration-200 font-medium px-2 py-1 rounded-md hover:bg-white/10"
+                onClick={() => setShowFarmersDropdown(!showFarmersDropdown)}
+                className="flex items-center space-x-2 text-white font-medium px-4 py-2 rounded-lg hover:bg-white/15 transition-all duration-300 group"
               >
-                <span>Services</span>
-                <ChevronDown className={`h-3 w-3 lg:h-4 lg:w-4 transition-transform duration-200 ${showServicesDropdown ? 'rotate-180' : ''}`} />
+                <Users className="h-4 w-4 group-hover:text-orange-200" />
+                <span>{t.farmerManagement}</span>
+                <ChevronDown
+                  className={`h-4 w-4 transition-transform duration-300 ${
+                    showFarmersDropdown ? "rotate-180" : ""
+                  }`}
+                />
               </button>
-              
-              {showServicesDropdown && (
-                <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-gray-200 py-1 z-50">
-                  <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/50">
-                    <h3 className="font-semibold text-gray-800 text-sm">Our Services</h3>
+              {showFarmersDropdown && (
+                <div className="absolute left-0 mt-3 w-72 bg-white rounded-2xl shadow-2xl border border-gray-200 py-2 z-50 animate-in slide-in-from-top-2 duration-200">
+                  <div className="px-4 py-3 border-b bg-gradient-to-r from-green-50 to-orange-50">
+                    <h3 className="text-base font-bold text-gray-800 flex items-center space-x-2">
+                      <Users className="h-4 w-4 text-green-600" />
+                      <span>{t.farmerManagement}</span>
+                    </h3>
+                    <p className="text-xs text-gray-600 mt-1">
+                      {t.farmerMgmtDesc}
+                    </p>
                   </div>
-                  {services.map((service, index) => (
-                    <DropdownItem key={index} icon={service.icon} href={service.href}>
-                      {service.name}
+                  {farmerManagement.map((item, index) => (
+                    <DropdownItem key={index} icon={item.icon} href={item.href}>
+                      {item.name}
                     </DropdownItem>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* Resources Dropdown */}
-            <div className="relative" ref={resourcesRef}>
+            {/* Crop Management Dropdown */}
+            <div className="relative" ref={cropsRef}>
               <button
-                onClick={() => setShowResourcesDropdown(!showResourcesDropdown)}
-                className="flex items-center space-x-1 text-white hover:text-amber-200 transition-colors duration-200 font-medium px-2 py-1 rounded-md hover:bg-white/10"
+                onClick={() => setShowCropsDropdown(!showCropsDropdown)}
+                className="flex items-center space-x-2 text-white font-medium px-4 py-2 rounded-lg hover:bg-white/15 transition-all duration-300 group"
               >
-                <span>Resources</span>
-                <ChevronDown className={`h-3 w-3 lg:h-4 lg:w-4 transition-transform duration-200 ${showResourcesDropdown ? 'rotate-180' : ''}`} />
+                <span>{t.cropManagement}</span>
+                <ChevronDown
+                  className={`h-4 w-4 transition-transform duration-300 ${
+                    showCropsDropdown ? "rotate-180" : ""
+                  }`}
+                />
               </button>
-              
-              {showResourcesDropdown && (
-                <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-gray-200 py-1 z-50">
-                  <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/50">
-                    <h3 className="font-semibold text-gray-800 text-sm">Resources</h3>
+              {showCropsDropdown && (
+                <div className="absolute left-0 mt-3 w-72 bg-white rounded-2xl shadow-2xl border border-gray-200 py-2 z-50 animate-in slide-in-from-top-2 duration-200">
+                  <div className="px-4 py-3 border-b bg-gradient-to-r from-green-50 to-orange-50">
+                    <h3 className="text-base font-bold text-gray-800 flex items-center space-x-2">
+                      <Wheat className="h-4 w-4 text-green-600" />
+                      <span>{t.cropManagement}</span>
+                    </h3>
+                    <p className="text-xs text-gray-600 mt-1">
+                      {t.cropMgmtDesc}
+                    </p>
                   </div>
-                  {resources.map((resource, index) => (
-                    <DropdownItem key={index} icon={resource.icon} href={resource.href}>
-                      {resource.name}
+                  {cropManagement.map((item, index) => (
+                    <DropdownItem key={index} icon={item.icon} href={item.href}>
+                      {item.name}
                     </DropdownItem>
                   ))}
                 </div>
               )}
             </div>
-
-            <NavLink href="/schemes">Schemes</NavLink>
-            <NavLink href="/news">News</NavLink>
-            <NavLink href="/contact">Contact</NavLink>
           </div>
 
           {/* Right Side Actions */}
-          <div className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4 flex-shrink-0">
-            {/* Search Bar */}
-            <div className="hidden lg:block">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-green-200" />
-                <input
-                  type="text"
-                  placeholder="Search schemes, news..."
-                  className="w-48 xl:w-64 pl-10 pr-4 py-2 bg-white/15 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-green-100 focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50 transition-all duration-200 text-sm"
-                />
-              </div>
-            </div>
-
-            {/* Search Icon for medium screens */}
-            <button className="lg:hidden bg-white/15 backdrop-blur-sm hover:bg-white/25 transition-all duration-200 p-2 sm:p-2.5 rounded-lg border border-white/20">
-              <Search className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-            </button>
+          <div className="flex items-center space-x-4">
+            {/* Search (Desktop) */}
+            {/* <div className="hidden lg:flex relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-green-200" />
+              <input
+                type="text"
+                placeholder={t.search}
+                className="pl-10 pr-4 py-2 bg-white/20 border border-white/30 rounded-lg text-white placeholder-green-100 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:bg-white/25 transition-all"
+              />
+            </div> */}
 
             {/* Notifications */}
             <div className="relative" ref={notificationRef}>
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
-                className="relative bg-white/15 backdrop-blur-sm hover:bg-white/25 transition-all duration-200 p-2 sm:p-2.5 rounded-lg border border-white/20 group"
+                className="relative p-2 text-white hover:bg-white/15 rounded-lg transition-all duration-300"
               >
-                <Bell className="h-4 w-4 sm:h-5 sm:w-5 text-white group-hover:text-amber-200" />
+                <Bell className="h-5 w-5" />
                 {unreadCount > 0 && (
-                  <>
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center font-bold">
-                      {unreadCount}
-                    </span>
-                    <span className="absolute -top-1 -right-1 bg-red-400 rounded-full h-4 w-4 sm:h-5 sm:w-5 animate-ping"></span>
-                  </>
+                  <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold animate-pulse">
+                    {unreadCount}
+                  </span>
                 )}
               </button>
-
-              {/* Notifications Dropdown */}
               {showNotifications && (
-                <div className="absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-xl shadow-2xl border border-gray-200 py-1 z-50">
-                  <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/50">
-                    <h3 className="font-semibold text-gray-800 text-sm">Notifications</h3>
+                <div className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-gray-200 py-2 z-50 animate-in slide-in-from-top-2 duration-200">
+                  <div className="px-4 py-3 border-b bg-gradient-to-r from-blue-50 to-green-50">
+                    <h3 className="text-base font-bold text-gray-800">
+                      {t.notifications}
+                    </h3>
+                    <p className="text-xs text-gray-600">
+                      {unreadCount} {t.unreadMessages}
+                    </p>
                   </div>
                   <div className="max-h-80 overflow-y-auto">
-                    {notifications.map((notification) => (
-                      <div
-                        key={notification.id}
-                        className={`px-4 py-3 hover:bg-gray-50 cursor-pointer border-l-4 transition-colors duration-200 ${
-                          notification.unread ? 'border-l-green-500 bg-green-50/30' : 'border-l-transparent'
-                        }`}
-                      >
-                        <p className="text-sm text-gray-800 mb-1 font-medium leading-snug">{notification.message}</p>
-                        <p className="text-xs text-gray-500">{notification.time}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="px-4 py-3 border-t border-gray-100 bg-gray-50/30">
-                    <button className="text-sm text-green-600 hover:text-green-700 font-medium transition-colors duration-200">
-                      View all notifications
-                    </button>
+                    {notifications.map((notification) => {
+                      const Icon = getNotificationIcon(notification.type);
+                      return (
+                        <div
+                          key={notification.id}
+                          className={`px-4 py-3 border-b last:border-b-0 hover:bg-gray-50 ${
+                            notification.unread ? "bg-blue-50/50" : ""
+                          }`}
+                        >
+                          <div className="flex items-start space-x-3">
+                            <Icon className="h-4 w-4 text-blue-600 mt-1 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm text-gray-800 font-medium">
+                                {notification.message}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {notification.time}
+                              </p>
+                            </div>
+                            {notification.unread && (
+                              <div className="h-2 w-2 bg-blue-500 rounded-full mt-2"></div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -262,36 +550,58 @@ const AgricultureNavbar = () => {
             <div className="relative" ref={userRef}>
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
-                className="bg-white/15 backdrop-blur-sm hover:bg-white/25 transition-all duration-200 p-2 sm:p-2.5 rounded-lg border border-white/20 group"
+                className="flex items-center space-x-2 bg-white/15 hover:bg-white/25 px-3 py-2 rounded-lg transition-all duration-300 border border-white/20"
               >
-                <User className="h-4 w-4 sm:h-5 sm:w-5 text-white group-hover:text-amber-200" />
+                <UserCircle className="h-5 w-5 text-orange-200" />
+                <span className="text-white text-sm font-medium hidden md:inline">
+                  {t.administrator}
+                </span>
+                <ChevronDown className="h-3 w-3 text-white" />
               </button>
-
               {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-2xl border border-gray-200 py-1 z-50">
-                  <a href="/login" className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200 border-b border-gray-50">
-                    Login
+                <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-2xl border border-gray-200 py-2 z-50 animate-in slide-in-from-top-2 duration-200">
+                  <div className="px-4 py-3 border-b bg-gradient-to-r from-green-50 to-orange-50">
+                    <p className="text-sm font-bold text-gray-800">
+                      {t.administrator}
+                    </p>
+                    <p className="text-xs text-gray-600">admin@krishi.gov.in</p>
+                  </div>
+                  <a
+                    href="#profile"
+                    className="flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 text-gray-700"
+                  >
+                    <UserCircle className="h-4 w-4" />
+                    <span className="text-sm">{t.profileSettings}</span>
                   </a>
-                  <a href="/register" className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200 border-b border-gray-50">
-                    Register
+                  <a
+                    href="#settings"
+                    className="flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 text-gray-700"
+                  >
+                    <Settings className="h-4 w-4" />
+                    <span className="text-sm">{t.systemSettings}</span>
                   </a>
-                  <a href="/farmer-portal" className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200">
-                    Farmer Portal
+                  <hr className="my-1" />
+                  <a
+                    href="D:\prajwal\sahaja_krushi_1.0\Sahaja_Krushi\src\pages\auth\Login.tsx"
+                    className="flex items-center space-x-3 px-4 py-3 hover:bg-red-50 text-red-600"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span className="text-sm">{t.logout}</span>
                   </a>
                 </div>
               )}
             </div>
 
-            {/* Mobile menu button */}
+            {/* Mobile Menu Toggle */}
             <div className="xl:hidden">
               <button
                 onClick={() => setShowMobileMenu(!showMobileMenu)}
-                className="bg-white/15 backdrop-blur-sm hover:bg-white/25 transition-all duration-200 p-2 sm:p-2.5 rounded-lg border border-white/20"
+                className="text-white p-2 rounded-lg hover:bg-white/15 transition-all"
               >
                 {showMobileMenu ? (
-                  <X className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                  <X className="h-6 w-6" />
                 ) : (
-                  <Menu className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                  <Menu className="h-6 w-6" />
                 )}
               </button>
             </div>
@@ -300,73 +610,33 @@ const AgricultureNavbar = () => {
 
         {/* Mobile Menu */}
         {showMobileMenu && (
-          <div className="xl:hidden bg-white/10 backdrop-blur-sm rounded-xl mt-3 mb-4 border border-white/20 overflow-hidden">
+          <div className="xl:hidden bg-white/10 backdrop-blur-lg rounded-2xl mt-4 border border-white/20 p-4 animate-in slide-in-from-top duration-300">
             {/* Mobile Search */}
-            <div className="p-4 border-b border-white/20">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-green-200" />
-                <input
-                  type="text"
-                  placeholder="Search schemes, news, services..."
-                  className="w-full pl-10 pr-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-green-100 focus:outline-none focus:ring-2 focus:ring-amber-400/50 text-sm"
-                />
-              </div>
-            </div>
+            {/* <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-green-200" />
+              <input
+                type="text"
+                placeholder="खोजें..."
+                className="w-full pl-10 pr-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white placeholder-green-100 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+              />
+            </div> */}
 
             {/* Mobile Navigation Links */}
-            <div className="p-2">
-              <div className="space-y-1">
-                <a href="/" className="block px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors duration-200 font-medium">
-                  Home
+            <div className="space-y-2">
+              {dashboardSections.map((section, index) => (
+                <a
+                  key={index}
+                  href={section.href}
+                  className={`flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all ${
+                    section.active
+                      ? "bg-white/20 text-orange-200 shadow-lg"
+                      : "text-white hover:bg-white/10"
+                  }`}
+                >
+                  <section.icon className="h-5 w-5" />
+                  <span>{section.name}</span>
                 </a>
-                
-                {/* Mobile Services Section */}
-                <div className="px-4 py-2">
-                  <p className="text-amber-200 font-semibold text-sm mb-2">Services</p>
-                  <div className="space-y-1 ml-2">
-                    {services.map((service, index) => (
-                      <a key={index} href={service.href} className="flex items-center space-x-2 px-3 py-2 text-white/90 hover:bg-white/10 rounded-md transition-colors duration-200 text-sm">
-                        <service.icon className="h-4 w-4" />
-                        <span>{service.name}</span>
-                      </a>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Mobile Resources Section */}
-                <div className="px-4 py-2">
-                  <p className="text-amber-200 font-semibold text-sm mb-2">Resources</p>
-                  <div className="space-y-1 ml-2">
-                    {resources.map((resource, index) => (
-                      <a key={index} href={resource.href} className="flex items-center space-x-2 px-3 py-2 text-white/90 hover:bg-white/10 rounded-md transition-colors duration-200 text-sm">
-                        <resource.icon className="h-4 w-4" />
-                        <span>{resource.name}</span>
-                      </a>
-                    ))}
-                  </div>
-                </div>
-
-                <a href="/schemes" className="block px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors duration-200 font-medium">
-                  Schemes
-                </a>
-                <a href="/news" className="block px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors duration-200 font-medium">
-                  News
-                </a>
-                <a href="/contact" className="block px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors duration-200 font-medium">
-                  Contact
-                </a>
-              </div>
-              
-              <hr className="my-3 border-white/20" />
-              
-              <div className="space-y-1">
-                <a href="/login" className="block px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors duration-200 font-medium">
-                  Login
-                </a>
-                <a href="/farmer-portal" className="block px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors duration-200 font-medium">
-                  Farmer Portal
-                </a>
-              </div>
+              ))}
             </div>
           </div>
         )}
@@ -375,4 +645,4 @@ const AgricultureNavbar = () => {
   );
 };
 
-export default AgricultureNavbar;
+export default GovernmentAgricultureNavbar;

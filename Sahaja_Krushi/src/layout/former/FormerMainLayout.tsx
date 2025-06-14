@@ -1,12 +1,10 @@
-// src/layout/admin/AdminMainLayout.tsx
-import React from "react";
 import { Outlet } from "react-router-dom";
-import FarmerNavbar from "../../components/FormerNavbar";
+import AdminDashboardNavbar from "../../components/Navbar";
 
 const FormerMainLayout = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <FarmerNavbar/>
+      <AdminDashboardNavbar/>
       <main className="flex-1 p-4 overflow-auto">
         <Outlet />
       </main>
