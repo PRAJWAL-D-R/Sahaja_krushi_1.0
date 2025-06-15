@@ -6,9 +6,9 @@ import GovernmentAgricultureNavbar from "../../components/Navbar";
 
 const AdminMainLayout = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      <GovernmentAgricultureNavbar/>
-      <main className="flex-1 p-4 overflow-auto">
+    <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
+      <GovernmentAgricultureNavbar />
+      <main className="flex-1 overflow-auto px-4 py-4">
         <Outlet />
       </main>
     </div>
